@@ -8,6 +8,7 @@ Target result: EEG, labels, channels, frequency
 # get dependency
 import numpy as np
 import scipy.io
+import torch
 
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -27,6 +28,8 @@ class Extractor(object):
         
         self.filename = filename
         self.__ext()
+        self.eeg_dataset = self.eeg_classification()
+        self.eeg_save(self.eeg_dataset)
         
     def __ext(self):
         
@@ -71,7 +74,7 @@ class Extractor(object):
                 result[int(self.typ[i])].append([tmp[int(self.pos[i]):(int(self.pos[i]) + int(self.dur[i]))] for tmp in self.signal_list])
         return result
     
-    def eeg_save(eeg_dataset):
+    def eeg_save(self, eeg_dataset):
         np.save(self.filename + '.npy', eeg_dataset)
         
 def signal_overview(signals, names):
@@ -94,3 +97,18 @@ def signal_overview(signals, names):
     
 def load_eeg(filename):
     return np.load(filename + '.npy', allow_pickle = True).item()
+
+def data_normalization(eeg_data):
+    labels = []
+    data = []
+    for l in [769, 770, 771, 772]:
+        index = 0
+        for i in range(len(eeg_data[l])):
+            l_temp = [0., 0., 0., 0.]
+            l_temp[index] = 1.
+            labels.append(l_temp)
+            eeg_data[l][i] = [np.pad(x, (0, 512 - len(x)), 'constant') for x in eeg_data[l][i]]
+            data.append([x.reshape((len(x), 1)) for x in eeg_data[l][i]])
+        index = index + 1
+            
+    return torch.tensor(labels), torch.tensor(data)
