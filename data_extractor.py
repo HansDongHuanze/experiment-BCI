@@ -34,14 +34,25 @@ class Extractor(object):
     def __ext(self):
         
         # load matlab files
-        t = scipy.io.loadmat(self.filename + '.mat', struct_as_record=True)
-        signals = t['s']
+        t = scipy.io.loadmat('/home/dhz/bci-data/data/' + self.filename + '.mat', struct_as_record=True)
         
-        self.typ = t['h']['EVENT'][0][0]['TYP'][0][0] # type of the event
-        self.pos = t['h']['EVENT'][0][0]['POS'][0][0] # position of the event happened in timeline
-        self.dur = t['h']['EVENT'][0][0]['DUR'][0][0] # duration of the event
+        if self.filename == 'A01T':
+            signals = t['s']
         
-        artifact_selection = t['h']['ArtifactSelection'][0][0]
+            self.typ = t['h']['EVENT'][0][0]['TYP'][0][0] # type of the event
+            self.pos = t['h']['EVENT'][0][0]['POS'][0][0] # position of the event happened in timeline
+            self.dur = t['h']['EVENT'][0][0]['DUR'][0][0] # duration of the event
+        
+            artifact_selection = t['h']['ArtifactSelection'][0][0]
+        
+        else:
+            signals = t['s' + self.filename]
+        
+            self.typ = t['h' + self.filename]['EVENT'][0][0]['TYP'][0][0] # type of the event
+            self.pos = t['h' + self.filename]['EVENT'][0][0]['POS'][0][0] # position of the event happened in timeline
+            self.dur = t['h' + self.filename]['EVENT'][0][0]['DUR'][0][0] # duration of the event
+        
+            artifact_selection = t['h' + self.filename]['ArtifactSelection'][0][0]
         
         C3 = signals[:, 7]
         Cz = signals[:, 9]
@@ -75,7 +86,7 @@ class Extractor(object):
         return result
     
     def eeg_save(self, eeg_dataset):
-        np.save(self.filename + '.npy', eeg_dataset)
+        np.save('/home/dhz/bci-data/data/' + self.filename + '.npy', eeg_dataset)
         
 def signal_overview(signals, names):
     '''
@@ -96,7 +107,7 @@ def signal_overview(signals, names):
     plt.show()
     
 def load_eeg(filename):
-    return np.load(filename + '.npy', allow_pickle = True).item()
+    return np.load('/home/dhz/bci-data/data/' + filename + '.npy', allow_pickle = True).item()
 
 def data_normalization(eeg_data):
     labels = []
