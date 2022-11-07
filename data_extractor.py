@@ -36,7 +36,7 @@ class Extractor(object):
         # load matlab files
         t = scipy.io.loadmat('/home/dhz/bci-data/data/' + self.filename + '.mat', struct_as_record=True)
         
-        if self.filename == 'A01T':
+        if self.filename == 'A01T' or self.filename == 'A01E':
             signals = t['s']
         
             self.typ = t['h']['EVENT'][0][0]['TYP'][0][0] # type of the event
