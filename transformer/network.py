@@ -1,3 +1,16 @@
+'''
+
+This file achieves a basic MLP model according to the idea I proposed.
+
+When initializing, in_size is the dimention of the input vector,
+hid_size is the architecture of hidden layer which should be represented
+by list, and out_size is the dimention of the output layer.
+
+When doing back propagation, the targets(in other word, labels), input,
+output, and some value of hidden layer only be provided or crypted by
+client.
+
+'''
 import numpy as np
 import pandas as pd
 import torch as torch
@@ -5,9 +18,8 @@ import torch.nn.functional as F
 import crypten
 torch.set_printoptions(precision=16)
 torch.set_default_tensor_type(torch.DoubleTensor)
-crypten.init()
 
-class network():
+class Network:
     def __init__(self, in_size, hid_size, out_size, rate):
         assert len(hid_size) > 0, 'a non-empty vector is expected'
         self.in_size = in_size
@@ -92,3 +104,9 @@ class network():
         dE_dw1 = dzh1_dw1.T.double().matmul(dE_dzh)
 
         self.weights[0] = self.weights[0] - dE_dw1 * self.rate
+    
+    def crossEntropy(self, o, t):
+        result = 0.
+        for i in range(len(o)):
+            result += pow(o[i] - t[i], 2)
+        return result / len(o)
