@@ -39,6 +39,6 @@ class Conv(object):
         return self.pooling_res
     
     def backpropagation(self, prev, client, rate):
-        filt, dc = client.conv_grad(prev, self.pooling_res, self.relu_res, self.conv_res, rate, self.__input_batch, self.__input_channel, self.__filter_channel, self.__filter_size, self.__filt)
+        filt, aft = client.conv_grad(prev, self.pooling_res, self.relu_res, self.conv_res, rate, self.__input_batch, self.__input_channel, self.__input_size, self.__filter_channel, self.__filter_size, self.__filt)
         self.__filt = filt
-        return dc
+        return filt, aft

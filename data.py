@@ -56,4 +56,4 @@ class DataExtract(object):
         
         labels = np.array([labels, labels, labels])
         
-        return torch.from_numpy(res) * 10e06 + 300, labels
+        return torch.from_numpy(res) * 10e06 + 300, labels[:, self.num - 1, :]
