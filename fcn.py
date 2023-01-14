@@ -22,8 +22,8 @@ class FCN(object):
         self.__input_batch = input_batch
         self.__input_size = input_size
         self.__output_size = output_size
-        self.__weight = torch.from_numpy(np.random.rand(self.__input_batch, self.__input_size, self.__output_size) * 2. - 1.).cuda()
-        self.__bias = torch.from_numpy(np.random.rand(self.__input_batch, 1, self.__output_size) * 2. - 1.).cuda()
+        self.__weight = torch.from_numpy(np.random.rand(self.__input_batch, self.__input_size, self.__output_size) * 0.2 - 0.1).cuda()
+        self.__bias = torch.from_numpy(np.random.rand(self.__input_batch, 1, self.__output_size) * 0.2 - 0.1).cuda()
     
     def forward(self, x_enc):
         self.x_enc = x_enc
@@ -32,6 +32,7 @@ class FCN(object):
         return self.sig_res
     
     def backpropagation(self, prev, client, rate):
-        weight, aft = client.fcn_grad(prev, rate, self.x_enc, self.__input_batch, self.__input_size, self.__output_size, self.__weight, self.mat_res, self.sig_res)
+        weight, bias, aft = client.fcn_grad(prev, rate, self.x_enc, self.__input_batch, self.__input_size, self.__output_size, self.__weight, self.mat_res, self.sig_res, self.__bias)
         self.__weight = weight
+        self.__bias = bias
         return weight, aft

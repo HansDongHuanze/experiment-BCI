@@ -29,8 +29,8 @@ class Conv(object):
         self.__filter_size = filter_size
         self.__act = act
         self.__pooling_size = pooling_size
-        self.__filt = torch.from_numpy(np.random.rand(self.__filter_channel, self.__input_channel, self.__filter_size, self.__filter_size) * 2. - 1.).cuda()
-        self.__bias = torch.from_numpy(np.random.rand(self.__input_batch, self.__filter_channel, self.__input_size, self.__input_size) * 2. - 1.).cuda()
+        self.__filt = torch.from_numpy(np.random.rand(self.__filter_channel, self.__input_channel, self.__filter_size, self.__filter_size) * 0.2 - 0.1).cuda()
+        self.__bias = torch.from_numpy(np.random.rand(self.__input_batch, self.__filter_channel, self.__input_size, self.__input_size) * 0.2 - 0.1).cuda()
     
     def forward(self, x_enc):
         self.conv_res = x_enc.conv2d(self.__filt, padding = 1)
@@ -39,6 +39,7 @@ class Conv(object):
         return self.pooling_res
     
     def backpropagation(self, prev, client, rate):
-        filt, aft = client.conv_grad(prev, self.pooling_res, self.relu_res, self.conv_res, rate, self.__input_batch, self.__input_channel, self.__input_size, self.__filter_channel, self.__filter_size, self.__filt)
+        filt, bias, aft = client.conv_grad(prev, self.pooling_res, self.relu_res, self.conv_res, rate, self.__input_batch, self.__input_channel, self.__input_size, self.__filter_channel, self.__filter_size, self.__filt, self.__bias)
         self.__filt = filt
+        self.__bias = bias
         return filt, aft
