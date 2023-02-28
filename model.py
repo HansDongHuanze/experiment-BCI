@@ -8,6 +8,8 @@ import torch as torch
 import torch.nn.functional as F
 import crypten
 
+import matplotlib.pyplot as plt
+
 torch.set_printoptions(precision=16)
 torch.set_default_tensor_type(torch.DoubleTensor)
 
@@ -18,7 +20,7 @@ from torch.utils.data import DataLoader
 import warnings
 warnings.filterwarnings("ignore")
 
-input_batch = 3
+input_batch = 2
 input_channel = 10
 input_size = 128
 filter_channel = 10
@@ -60,18 +62,21 @@ def train(data):
         
     return hidden_list[-1]
 
-if __name__ == '__main__':
+def start(ite):
     clients = []
-    for i in range(25):
-        clients.append(Client(i + 1))
+    accs = []
+    loss_hist = []
+    for i in range(30):
+        client = Client(i + 1)
+        clients.append(client)
     
-    for epoch in range(100):
+    for epoch in range(ite):
         losses = 0.
         step = 1
-        accuracy =[]
+        accuracy = 0.
         
-        loop = tqdm(range(25))
-        loop.set_description(f'Epoch [{epoch + 1}/{100}]')
+        loop = tqdm(range(len(clients)))
+        loop.set_description(f'Epoch [{epoch + 1}/{ite}]')
         
         for i in loop:
             client = clients[i]
@@ -79,12 +84,16 @@ if __name__ == '__main__':
             data = client.get_data()
 
             prediction = train(data)
+            
+            if client.acc(prediction):
+                accuracy += 1.
 
             temp = client
 
             loss = temp.loss(prediction)
 
-            learning_rate = 1e-2
+            learning_rate = 1e-3
+            
             prev = client.loss_grad()
 
             for i in range(len(fcn_list)):
@@ -95,8 +104,25 @@ if __name__ == '__main__':
             for i in range(len(conv_list)):
                 weight, prev = conv_list[len(conv_list) - 1 - i].backpropagation(prev, client, learning_rate)
 
-            losses += loss.item()
-
-            
-            loop.set_postfix(loss = losses / step)
+            losses = losses + loss.item()
+            loop.set_postfix(loss = losses / step, acc = accuracy / step)
             step += 1
+            
+        accs.append(accuracy / step)
+        loss_hist.append(losses / step)
+        
+    plt.figure(figsize=(20, 10), dpi=100)
+    iterate = range(1, ite + 1)
+    
+    plt.plot(iterate, accs, c='red', label="accuracy")
+    plt.plot(iterate, loss_hist, c='green', linestyle='--', label="loss")
+    plt.scatter(iterate, accs, c='red')
+    plt.scatter(iterate, loss_hist, c='green')
+    plt.legend(loc='best')
+    plt.xlabel("iteration", fontdict={'size': 16})
+    plt.ylabel("details", fontdict={'size': 16})
+    plt.title("accuracy and average loss", fontdict={'size': 20})
+    plt.show()
+        
+if __name__ == '__main__':
+    start(100)

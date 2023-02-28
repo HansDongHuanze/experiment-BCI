@@ -28,7 +28,7 @@ class DataExtract(object):
         dataframe = seg.to_data_frame()
         newframe = dataframe.groupby(dataframe.description)
 
-        eves = ['1', '3', '5']
+        eves = ['3', '5']
         signals = []
 
         for i in eves:
@@ -54,6 +54,8 @@ class DataExtract(object):
         col = col[[0, 1, 2, 3, 6, 7, 8]]
         labels = labels.drop(col, axis=1)
         
-        labels = np.array([labels, labels, labels])
+        labels = np.array([labels, labels])
+        
+        labels[:, 37] = 0.
         
         return torch.from_numpy(res) * 10e06 + 300, labels[:, self.num - 1, :]

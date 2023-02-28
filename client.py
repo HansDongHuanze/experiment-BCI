@@ -18,6 +18,21 @@ class Client(object):
     def get_data(self):
         return self.crypt_dataset
     
+    def acc(self, predict):
+        predict = predict.get_plain_text()
+        label = self.__labels.reshape(2, 1, 2)
+        res = 0.
+        for i in range(2):
+            res += abs(predict[i, 0, 0] - 10 * label[i, 0, 0])
+        res = res / 2
+        if res < 0.2:
+            return True
+        else:
+            return False
+    
+    def get_label(self):
+        return self.__labels
+    
     def conv_grad(self, prev, p_res, r_res, c_res, rate, batch, input_channel, input_size, filter_channel, filter_size, filt, bias):
         p_plain = p_res.get_plain_text()
         pool_raw = prev.mul(p_plain.to(torch.double)).repeat_interleave(2, dim=2).repeat_interleave(2, dim=3)
@@ -82,12 +97,12 @@ class Client(object):
     def loss(self, prediction):
         loss = 0.
         self.pred = prediction.get_plain_text()
-        for line in range(3):
+        for line in range(2):
             for col in range(2):
                 loss += 1. / 2. * (self.__labels[line, col] - self.pred[line, 0, col]) * (self.__labels[line, col] - self.pred[line, 0, col])
         return loss
     
     def loss_grad(self):
-        label = self.__labels.reshape(3, 1, 2)
+        label = self.__labels.reshape(2, 1, 2)
         loss_grad = self.pred - torch.from_numpy(label).cuda()
         return loss_grad
