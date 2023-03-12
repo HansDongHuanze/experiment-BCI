@@ -30,6 +30,13 @@ class Client(object):
         else:
             return False
     
+    def mse_cal(self, pre):
+        criterion1 = torch.nn.MSELoss()
+        predict = pre.get_plain_text()
+        pred = torch.tensor(10 * (predict[0, 0, 0] + predict[0, 0, 1]) / 2).cuda()
+        MSE = criterion1(pred, torch.tensor(self.get_label()[0, 0] * 100).cuda())
+        return MSE.item()
+    
     def get_label(self):
         return self.__labels
     

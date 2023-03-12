@@ -46,6 +46,10 @@ while output_size > 2:
     fcn_list.append(FCN(input_batch, output_size, (int)(output_size / 2)))
     output_size = (int)(output_size / 2)
 
+def accuracy_f(predictions, client):
+    MSE = client.mse_cal(predictions)
+    return MSE
+    
 def train(data):
     hidden_list = []
     hidden_list.append(conv_list[0].forward(data))
@@ -64,21 +68,28 @@ def train(data):
 
 def start(ite):
     clients = []
+    test_clients = []
     accs = []
     loss_hist = []
     for i in range(30):
         client = Client(i + 1)
         clients.append(client)
+        
+    for i in range(20):
+        client = Client(30 + i + 1)
+        test_clients.append(client)
     
     for epoch in range(ite):
         losses = 0.
-        step = 1
+        step = 0
         accuracy = 0.
+        mses = 0.
         
         loop = tqdm(range(len(clients)))
         loop.set_description(f'Epoch [{epoch + 1}/{ite}]')
         
         for i in loop:
+            step += 1
             client = clients[i]
 
             data = client.get_data()
@@ -92,7 +103,7 @@ def start(ite):
 
             loss = temp.loss(prediction)
 
-            learning_rate = 1e-3
+            learning_rate = 1e-2
             
             prev = client.loss_grad()
 
@@ -105,10 +116,13 @@ def start(ite):
                 weight, prev = conv_list[len(conv_list) - 1 - i].backpropagation(prev, client, learning_rate)
 
             losses = losses + loss.item()
-            loop.set_postfix(loss = losses / step, acc = accuracy / step)
-            step += 1
+            if step % 30 == 0:
+                for c in test_clients:
+                    p = train(c.get_data())
+                    mses += accuracy_f(p, c)
+                loop.set_postfix(loss = losses / step, mse = mses / 20)
             
-        accs.append(accuracy / step)
+        accs.append(mses / step)
         loss_hist.append(losses / step)
         
     plt.figure(figsize=(20, 10), dpi=100)
