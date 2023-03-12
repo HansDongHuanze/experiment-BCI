@@ -122,21 +122,11 @@ def start(ite):
                     mses += accuracy_f(p, c)
                 loop.set_postfix(loss = losses / step, mse = mses / 20)
             
-        accs.append(mses / step)
-        loss_hist.append(losses / step)
+        if epoch % 5 == 0:
+            accs.append(mses / step)
+            loss_hist.append(losses / step)
         
-    plt.figure(figsize=(20, 10), dpi=100)
-    iterate = range(1, ite + 1)
-    
-    plt.plot(iterate, accs, c='red', label="accuracy")
-    plt.plot(iterate, loss_hist, c='green', linestyle='--', label="loss")
-    plt.scatter(iterate, accs, c='red')
-    plt.scatter(iterate, loss_hist, c='green')
-    plt.legend(loc='best')
-    plt.xlabel("iteration", fontdict={'size': 16})
-    plt.ylabel("details", fontdict={'size': 16})
-    plt.title("accuracy and average loss", fontdict={'size': 20})
-    plt.show()
+    return accs, loss_hist
         
 if __name__ == '__main__':
     start(100)
