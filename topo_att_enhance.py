@@ -5,7 +5,7 @@ import torch as torch
 import time
 from tqdm import tqdm
 from openpyxl import load_workbook
-
+import json
 from preprocessing import Preprocessing
 
 import torch
@@ -125,7 +125,14 @@ class topo_CNN(nn.Module):
         x= self.conv6(x)
         output = self.out(x)
         return output.reshape((1, 1))
-
+    def get_connection(self):
+        connections = []
+        for i in range(64):
+            net = self.attention_net[i]
+            temp = torch.ones([1,64]).cuda()
+            conn = net(temp)
+            connections.append(conn.mul(self.topo_map[i]).reshape(64).tolist())
+        return connections
 def run(train_loader, test_loader):
     wb = load_workbook('topo.xlsx')
     sheets = wb.worksheets
@@ -182,5 +189,8 @@ def run(train_loader, test_loader):
                     mse_list.append(mses / 20)
                     loss_list.append(losses / (batch_idx + 1))
                     
-    torch.save(net, 'model.pkl')
+    connections = net.get_connection()
+    res_json=json.dumps({'res': connections})
+    with open('conn.json','w+') as file:
+        file.write(res_json)
     return loss_list, mse_list
